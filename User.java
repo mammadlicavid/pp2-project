@@ -6,17 +6,20 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class User implements Serializable {
     private String name;
     private String userName;
     private String password;
+    private ArrayList<Movie> watchlist;
 
     public User(String name, String userName, String password) {
         this.name = name;
         this.userName = userName;
         this.password = password;
-        registerUser(this); // register user upon creating it object
+        this.watchlist = new ArrayList<Movie>();
     }
 
     public String getName() {
@@ -43,24 +46,45 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public static void registerUser(User u) {
+    public void addMovieToWatchlist(Movie movie) {
+        this.watchlist.add(movie);
+    }
+
+    public void removeMovieFromWatchlist(Movie movie) {
+        this.watchlist.remove(movie);
+    }
+
+    public void removeMovieFromWatchlistByTitle(String title) {
+        Iterator<Movie> iterator = watchlist.iterator();
+        while (iterator.hasNext()) {
+            Movie movie = iterator.next();
+            if (movie.getTitle().equals(title)) {
+                iterator.remove();
+                return;
+            }
+        }
+    }
+
+    public static boolean registerUser(User u) {
         try {
             // check if user already exists in db
             boolean checkIfUserExists = checkIfUserExists(u.userName);
             if (checkIfUserExists) {
                 System.out.println("The user already exists!");
-                return;
+                return false;
             }
 
             OutputStream uos = new FileOutputStream("users.txt", true);
             ObjectOutputStream uoos = new ObjectOutputStream(uos);
             uoos.writeObject(u);
             uoos.close();
+            return true;
         } catch (FileNotFoundException e) {
             System.out.println("Could not find the file named users.txt!");
         } catch (IOException e) {
-            return;
+            return false;
         }
+        return false;
     }
 
     public static boolean checkIfUserExists(String username) {
@@ -95,7 +119,7 @@ public class User implements Serializable {
         }
     }
 
-    public static boolean login(String username, String password) {
+    public static User login(String username, String password) {
         try {
             FileInputStream fis = new FileInputStream("users.txt");
             ObjectInputStream ois = new ObjectInputStream(fis);
@@ -107,8 +131,7 @@ public class User implements Serializable {
                     User user = (User) ois.readObject();
                     // if any user with given username and password exist:
                     if (user.getUserName().equals(username) && user.getPassword().equals(password)) {
-                        System.out.println("Login successful!");
-                        return true;
+                        return user;
                     }
                 } catch (ClassNotFoundException e) {
                     System.out.println("Error reading user: " + e.getMessage());
@@ -120,10 +143,10 @@ public class User implements Serializable {
 
             ois.close();
             System.out.println("Username & password is wrong");
-            return false;
+            return null;
 
         } catch (IOException e) {
-            return false;
+            return null;
         }
     }
 
