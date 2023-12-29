@@ -1,11 +1,18 @@
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-public class MovieDatabase {
+public class MovieDatabase implements Serializable {
     ArrayList<Movie> movies;
 
     public MovieDatabase() {
         this.movies = new ArrayList<Movie>();
+        // upon object creation, read all movies
+        loadMoviesFromFile();
     }
 
     public void addMovie(Movie movie) {
@@ -38,6 +45,27 @@ public class MovieDatabase {
 
     public ArrayList<Movie> getMovies() {
         return movies;
+    }
+
+    private void loadMoviesFromFile() {
+        // read all Movie objects from movies.txt
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("movies.txt"))) {
+            while (true) {
+                try {
+                    Movie movie = (Movie) ois.readObject();
+                    if (movie != null) {
+                        addMovie(movie);
+                    }
+                } catch (EOFException e) {
+                    break;
+                } catch (ClassNotFoundException | IOException e) {
+                    System.out.println("Error reading movie from file: " + e.getMessage());
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error loading movies from file: " + e.getMessage());
+        }
     }
 
     // filter functions
