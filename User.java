@@ -48,13 +48,33 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public void addMovieToWatchlist(Movie movie) {
-        this.watchlist.add(movie);
-        updateUserToFile(); // update the user object in users.txt
+    public ArrayList<Movie> getWatcArrayList() {
+        return this.watchlist;
+    }
+
+    public boolean addMovieToWatchlist(Movie movie) {
+        if (!checkIfMovieExistInWatchlist(movie.getTitle())) {
+            this.watchlist.add(movie);
+            updateUserToFile();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkIfMovieExistInWatchlist(String title) {
+        for (Movie m : this.watchlist) {
+            if (m.getTitle().equals(title)) {
+                // movie already exists
+                return true;
+            }
+        }
+        // movie not found
+        return false;
     }
 
     public void removeMovieFromWatchlist(Movie movie) {
         this.watchlist.remove(movie);
+        updateUserToFile();
     }
 
     public void removeMovieFromWatchlistByTitle(String title) {
@@ -66,6 +86,7 @@ public class User implements Serializable {
                 return;
             }
         }
+        updateUserToFile();
     }
 
     public static User registerUser(User u) {
@@ -234,5 +255,9 @@ public class User implements Serializable {
         }
 
         return users;
+    }
+
+    public ArrayList<Movie> getWatchlist() {
+        return watchlist;
     }
 }
