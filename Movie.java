@@ -94,7 +94,7 @@ public class Movie implements Serializable {
         return false;
     }
 
-    private List<Movie> readAllMovies() {
+    private static List<Movie> readAllMovies() {
         List<Movie> movies = new ArrayList<>();
         // reading all movies from movies.txt
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("movies.txt"))) {
@@ -116,5 +116,22 @@ public class Movie implements Serializable {
         }
 
         return movies;
+    }
+
+    public static Movie getMovieByTitle(String title) {
+        List<Movie> existingMovies = readAllMovies();
+
+        for (Movie movie : existingMovies) {
+            if (movie.getTitle().equals(title)) {
+                return movie;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return this.title + ", " + this.director + " " + this.releaseYear + " " + this.runningTime;
     }
 }
