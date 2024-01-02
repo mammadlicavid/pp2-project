@@ -48,10 +48,6 @@ public class User implements Serializable {
         this.password = password;
     }
 
-    public ArrayList<Movie> getWatcArrayList() {
-        return this.watchlist;
-    }
-
     public boolean addMovieToWatchlist(Movie movie) {
         if (!checkIfMovieExistInWatchlist(movie.getTitle())) {
             this.watchlist.add(movie);
@@ -82,11 +78,10 @@ public class User implements Serializable {
         while (iterator.hasNext()) {
             Movie movie = iterator.next();
             if (movie.getTitle().equals(title)) {
-                iterator.remove();
+                removeMovieFromWatchlist(movie);
                 return;
             }
         }
-        updateUserToFile();
     }
 
     public static User registerUser(User u) {
