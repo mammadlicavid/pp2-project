@@ -20,8 +20,12 @@ import java.util.ArrayList;
 
 public class SwingUI {
     private static User user;
+    private static ArrayList<Movie> watchListMovies;
+    private static ArrayList<Movie> allMovies;
+    private static int sortButtonClicks = 0;
 
     public static void generateUI(MovieDatabase globalMovieDatabase) {
+        allMovies = globalMovieDatabase.getMovies();
 
         // creating main frame
         JFrame mainFrame = new JFrame("Login/Register GUI");
@@ -64,10 +68,10 @@ public class SwingUI {
 
                         // create a new frame for movie search after successful login. This will open
                         // new frame and close previous ones
+                        user = loggedInUser;
                         createMovieSearchFrame(globalMovieDatabase);
                         loginFrame.dispose();
                         mainFrame.setVisible(false);
-                        user = loggedInUser;
                     } else {
                         JOptionPane.showMessageDialog(null, "Login failed!");
                     }
@@ -121,10 +125,10 @@ public class SwingUI {
 
                         // create a new frame for movie search after successful registration. This will
                         // open new frame and close previous ones
+                        user = registredUser;
                         createMovieSearchFrame(globalMovieDatabase);
                         registerFrame.dispose();
                         mainFrame.setVisible(false);
-                        user = registredUser;
                     } else {
                         JOptionPane.showMessageDialog(null, "Registration failed!");
                     }
@@ -155,6 +159,7 @@ public class SwingUI {
 
     // method to be used to create new panel after succesfull login / registration
     private static void createMovieSearchFrame(MovieDatabase globalMovieDatabase) {
+        watchListMovies = user.getWatchlist();
         JFrame searchFrame = new JFrame("Movie Search");
         searchFrame.setSize(400, 400);
         searchFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -202,14 +207,14 @@ public class SwingUI {
                 // design the locations of items in the frame
                 GridBagConstraints gbcLabel = new GridBagConstraints();
                 gbcLabel.gridx = 0;
-                gbcLabel.gridy = i + 5;
+                gbcLabel.gridy = i + 6;
                 gbcLabel.weightx = 1; // Make label take available horizontal space
                 gbcLabel.fill = GridBagConstraints.HORIZONTAL;
                 movieListPanel.add(movieLabel, gbcLabel);
 
                 GridBagConstraints gbcButton = new GridBagConstraints();
                 gbcButton.gridx = 1;
-                gbcButton.gridy = i + 5;
+                gbcButton.gridy = i + 6;
                 movieListPanel.add(addButton, gbcButton);
 
             }
@@ -227,10 +232,6 @@ public class SwingUI {
             JPanel watchlistPanel = new JPanel(new GridBagLayout());
             filterMovies(globalMovieDatabase, user.getWatchlist(), watchlistPanel, "watchlist");
 
-            for (Movie movie : user.getWatchlist()) {
-                System.out.println(movie.toString());
-            }
-
             for (int i = 0; i < user.getWatchlist().size(); i++) {
                 JLabel watchlistLabel = new JLabel(user.getWatchlist().get(i).toString());
                 JButton removeButton = new JButton("Remove from watchlist");
@@ -239,7 +240,6 @@ public class SwingUI {
                 // for every movie, there is a label and remove button
                 // after the button is clicked, if the movie is removed from wathclist
                 removeButton.addActionListener(actionEvent -> {
-                    System.out.println(finalI);
                     String titleOfMovie = user.getWatchlist().get(finalI).getTitle();
 
                     user.removeMovieFromWatchlistByTitle(titleOfMovie);
@@ -258,14 +258,14 @@ public class SwingUI {
                 // design the locations of items in the frame
                 GridBagConstraints gbcLabel = new GridBagConstraints();
                 gbcLabel.gridx = 0;
-                gbcLabel.gridy = i + 5;
+                gbcLabel.gridy = i + 6;
                 gbcLabel.weightx = 1; // Make label take available horizontal space
                 gbcLabel.fill = GridBagConstraints.HORIZONTAL;
                 watchlistPanel.add(watchlistLabel, gbcLabel);
 
                 GridBagConstraints gbcButton = new GridBagConstraints();
                 gbcButton.gridx = 1;
-                gbcButton.gridy = i + 5;
+                gbcButton.gridy = i + 6;
                 watchlistPanel.add(removeButton, gbcButton);
             }
 
@@ -285,6 +285,10 @@ public class SwingUI {
     private static Object[] addFilterComponentsToPanelAndReturnMainComponents(JPanel movieListPanel) {
         JLabel filterMovieLabel = new JLabel("Filter Movies");
         JButton filterButton = new JButton("Click to filter");
+
+        JLabel sortMovieLabel = new JLabel("Sort Movies");
+        JButton sortButton = new JButton("Click to Sort");
+
         JLabel minStartDate = new JLabel("Earliest Start Date");
         JLabel maxStartDate = new JLabel("Latest Start Date");
         JLabel minRunningTime = new JLabel("Smallest Running Time");
@@ -359,8 +363,19 @@ public class SwingUI {
         gbcMaxRunningTimeTextField.gridy = 3;
         movieListPanel.add(maxRunningTimeTextField, gbcMaxRunningTimeTextField);
 
+        GridBagConstraints gbcSortLabel = new GridBagConstraints();
+        gbcSortLabel.gridx = 0;
+        gbcSortLabel.gridy = 5;
+        movieListPanel.add(sortMovieLabel, gbcSortLabel);
+
+        GridBagConstraints gbcSortButton = new GridBagConstraints();
+        gbcSortButton.gridx = 1;
+        gbcSortButton.gridy = 5;
+        movieListPanel.add(sortButton, gbcSortButton);
+
         // Return the components in an array or any suitable data structure
-        return new Object[] { filterButton, minStartDateTextField, maxStartDateTextField, minRunningTimeTextField,
+        return new Object[] { filterButton, sortButton, minStartDateTextField, maxStartDateTextField,
+                minRunningTimeTextField,
                 maxRunningTimeTextField };
     }
 
@@ -369,23 +384,110 @@ public class SwingUI {
 
         Object[] components = addFilterComponentsToPanelAndReturnMainComponents(movieListPanel);
         JButton filterButton = (JButton) components[0];
-        JTextField minStartDateTextField = (JTextField) components[1];
-        JTextField maxStartDateTextField = (JTextField) components[2];
-        JTextField minRunningTimeTextField = (JTextField) components[3];
-        JTextField maxRunningTimeTextField = (JTextField) components[4];
+        JButton sortButton = (JButton) components[1];
+        JTextField minStartDateTextField = (JTextField) components[2];
+        JTextField maxStartDateTextField = (JTextField) components[3];
+        JTextField minRunningTimeTextField = (JTextField) components[4];
+        JTextField maxRunningTimeTextField = (JTextField) components[5];
 
         filterButton.addActionListener(actionEvent -> {
             // remove all rows except filter-related
             // first get the values, then remove all commas as in the formas we used, there
             // could be commas and recieve the integer values
-            int minStartDate = Integer.parseInt(minStartDateTextField.getText().replaceAll(",", ""));
-            int maxStartDate = Integer.parseInt(maxStartDateTextField.getText().replaceAll(",", ""));
-            int minRunningTime = Integer.parseInt(minRunningTimeTextField.getText().replaceAll(",", ""));
-            int maxRunningTime = Integer.parseInt(maxRunningTimeTextField.getText().replaceAll(",", ""));
+            int minStartDate = parseTextField(minStartDateTextField.getText(), Integer.MIN_VALUE);
+            int maxStartDate = parseTextField(maxStartDateTextField.getText(), Integer.MAX_VALUE);
+            int minRunningTime = parseTextField(minRunningTimeTextField.getText(), Integer.MIN_VALUE);
+            int maxRunningTime = parseTextField(maxRunningTimeTextField.getText(), Integer.MAX_VALUE);
             removeFromAndinsertIntoPanel(globalMovieDatabase, moviesToBeFiltered, minStartDate, maxStartDate,
-                    minRunningTime,
-                    maxRunningTime, movieListPanel, panelName);
+                    minRunningTime, maxRunningTime, movieListPanel, panelName);
 
+        });
+
+        sortButton.addActionListener(actionEvent -> {
+            sortButtonClicks++;
+            removeAllExceptFilterComponents(movieListPanel);
+            if (panelName == "database") {
+                // sort movies based on number if clicks. If it is even, or odd, it either sorts
+                // in increasing or decreasing order
+                SwingUI.allMovies = MovieDatabase.getMoviesSortedByRunningTime(SwingUI.allMovies,
+                        (sortButtonClicks % 2 == 0) ? true : false);
+
+                for (int i = 0; i < allMovies.size(); i++) {
+                    // get name to be displayed in the label
+                    JLabel movieLabel = new JLabel(allMovies.get(i).toString());
+                    JButton addButton = new JButton("Add movie to watchlist");
+
+                    int finalI = i;
+                    addButton.addActionListener(actionEvent2 -> {
+                        Movie movieObjectByTitle = Movie.getMovieByTitle(allMovies.get(finalI).getTitle());
+                        boolean movieAdded = user.addMovieToWatchlist(movieObjectByTitle);
+                        if (movieAdded) {
+                            JOptionPane.showMessageDialog(null,
+                                    "Added to watchlist: " + allMovies.get(finalI).getTitle());
+                        } else {
+                            JOptionPane.showMessageDialog(null,
+                                    "Movie " + allMovies.get(finalI).getTitle()
+                                            + " already exists in watchlist");
+                        }
+                    });
+
+                    // design the locations of items in the frame
+                    GridBagConstraints gbcLabel = new GridBagConstraints();
+                    gbcLabel.gridx = 0;
+                    gbcLabel.gridy = i + 6;
+                    gbcLabel.weightx = 1; // Make label take available horizontal space
+                    gbcLabel.fill = GridBagConstraints.HORIZONTAL;
+                    movieListPanel.add(movieLabel, gbcLabel);
+
+                    GridBagConstraints gbcButton = new GridBagConstraints();
+                    gbcButton.gridx = 1;
+                    gbcButton.gridy = i + 6;
+                    movieListPanel.add(addButton, gbcButton);
+
+                }
+            } else {
+                // sort movies based on number if clicks. If it is even, or odd, it either sorts
+                // in increasing or decreasing order
+                SwingUI.watchListMovies = MovieDatabase.getMoviesSortedByRunningTime(SwingUI.watchListMovies,
+                        (sortButtonClicks % 2 == 0) ? true : false);
+                ;
+                for (int i = 0; i < watchListMovies.size(); i++) {
+                    JLabel watchlistLabel = new JLabel(watchListMovies.get(i).toString());
+                    JButton removeButton = new JButton("Remove from watchlist");
+
+                    int finalI = i;
+                    // for every movie, there is a label and remove button
+                    // after the button is clicked, if the movie is removed from wathclist
+                    removeButton.addActionListener(actionEvent3 -> {
+                        String titleOfMovie = watchListMovies.get(finalI).getTitle();
+
+                        user.removeMovieFromWatchlistByTitle(titleOfMovie);
+                        JOptionPane.showMessageDialog(null,
+                                "Removed from watchlist: " + titleOfMovie);
+
+                        // remove label and button from screen, after it is removed from watchlist
+                        removeFromAndinsertIntoPanel(globalMovieDatabase, watchListMovies, -1000, 3000, 0, 5000,
+                                movieListPanel, "watchlist");
+
+                    });
+
+                    watchlistLabel.setPreferredSize(new Dimension(250, 40));
+                    removeButton.setPreferredSize(new Dimension(250, 40));
+
+                    // design the locations of items in the frame
+                    GridBagConstraints gbcLabel = new GridBagConstraints();
+                    gbcLabel.gridx = 0;
+                    gbcLabel.gridy = i + 6;
+                    gbcLabel.weightx = 1; // Make label take available horizontal space
+                    gbcLabel.fill = GridBagConstraints.HORIZONTAL;
+                    movieListPanel.add(watchlistLabel, gbcLabel);
+
+                    GridBagConstraints gbcButton = new GridBagConstraints();
+                    gbcButton.gridx = 1;
+                    gbcButton.gridy = i + 6;
+                    movieListPanel.add(removeButton, gbcButton);
+                }
+            }
         });
 
     }
@@ -396,7 +498,7 @@ public class SwingUI {
         for (Component component : components) {
             if ((component instanceof JLabel) &&
                     !((JLabel) component).getText().matches(
-                            "Filter Movies|Earliest Start Date|Latest Start Date|Smallest Running Time|Biggest Running Time")) {
+                            "Filter Movies|Earliest Start Date|Latest Start Date|Smallest Running Time|Biggest Running Time|Sort Movies")) {
                 movieListPanel.remove(component);
             } else if ((component instanceof JButton) &&
                     (((JButton) component).getText().equals("Add movie to watchlist") ||
@@ -422,6 +524,8 @@ public class SwingUI {
 
         // based on pnael name, insert the components
         if (panelName == "database") {
+            SwingUI.allMovies = moviesToBeFiltered;
+
             for (int i = 0; i < filteredMovies.size(); i++) {
                 // get name to be displayed in the label
                 JLabel movieLabel = new JLabel(filteredMovies.get(i).toString());
@@ -447,18 +551,19 @@ public class SwingUI {
                 // design the locations of items in the frame
                 GridBagConstraints gbcLabel = new GridBagConstraints();
                 gbcLabel.gridx = 0;
-                gbcLabel.gridy = i + 5;
+                gbcLabel.gridy = i + 6;
                 gbcLabel.weightx = 1; // Make label take available horizontal space
                 gbcLabel.fill = GridBagConstraints.HORIZONTAL;
                 movieListPanel.add(movieLabel, gbcLabel);
 
                 GridBagConstraints gbcButton = new GridBagConstraints();
                 gbcButton.gridx = 1;
-                gbcButton.gridy = i + 5;
+                gbcButton.gridy = i + 6;
                 movieListPanel.add(addButton, gbcButton);
 
             }
         } else {
+            SwingUI.watchListMovies = moviesToBeFiltered;
             for (int i = 0; i < filteredMovies.size(); i++) {
                 JLabel watchlistLabel = new JLabel(filteredMovies.get(i).toString());
                 JButton removeButton = new JButton("Remove from watchlist");
@@ -467,7 +572,6 @@ public class SwingUI {
                 // for every movie, there is a label and remove button
                 // after the button is clicked, if the movie is removed from wathclist
                 removeButton.addActionListener(actionEvent3 -> {
-                    System.out.println(finalI);
                     String titleOfMovie = filteredMovies.get(finalI).getTitle();
 
                     user.removeMovieFromWatchlistByTitle(titleOfMovie);
@@ -486,16 +590,31 @@ public class SwingUI {
                 // design the locations of items in the frame
                 GridBagConstraints gbcLabel = new GridBagConstraints();
                 gbcLabel.gridx = 0;
-                gbcLabel.gridy = i + 5;
+                gbcLabel.gridy = i + 6;
                 gbcLabel.weightx = 1; // Make label take available horizontal space
                 gbcLabel.fill = GridBagConstraints.HORIZONTAL;
                 movieListPanel.add(watchlistLabel, gbcLabel);
 
                 GridBagConstraints gbcButton = new GridBagConstraints();
                 gbcButton.gridx = 1;
-                gbcButton.gridy = i + 5;
+                gbcButton.gridy = i + 6;
                 movieListPanel.add(removeButton, gbcButton);
             }
+        }
+    }
+
+    // helper function for parsing user input
+    // so that if there is no input, we can assume that that value is not going tobe
+    // filtered
+    private static int parseTextField(String text, int defaultValue) {
+        String cleanedText = text.replaceAll(",", "");
+        if (cleanedText.isEmpty()) {
+            return defaultValue;
+        }
+        try {
+            return Integer.parseInt(cleanedText);
+        } catch (NumberFormatException e) {
+            return defaultValue;
         }
     }
 }
