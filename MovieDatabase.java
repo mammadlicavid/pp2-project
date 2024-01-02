@@ -69,10 +69,10 @@ public class MovieDatabase implements Serializable {
     }
 
     // filter functions
-    public ArrayList<Movie> filterByReleaseYear(int year) {
+    public static ArrayList<Movie> filterByReleaseYear(ArrayList<Movie> movies, int year) {
         ArrayList<Movie> filteredMovies = new ArrayList<Movie>();
         // get all movies whose release yeae is in given year
-        for (Movie movie : this.getMovies()) {
+        for (Movie movie : movies) {
             if (movie.getReleaseYear() == year) {
                 filteredMovies.add(movie);
             }
@@ -115,10 +115,10 @@ public class MovieDatabase implements Serializable {
         return moviesFilteredByRunningTimeAndReleaseYear;
     }
 
-    public ArrayList<Movie> filterByDirector(String name) {
+    public static ArrayList<Movie> filterByDirector(ArrayList<Movie> movies, String name) {
         ArrayList<Movie> filteredMovies = new ArrayList<Movie>();
         // get all movies whose director has given name (not case sensitive)
-        for (Movie movie : this.getMovies()) {
+        for (Movie movie : movies) {
             if (movie.getDirector().toLowerCase().contains(name.toLowerCase())) {
                 filteredMovies.add(movie);
             }
@@ -127,10 +127,10 @@ public class MovieDatabase implements Serializable {
         return filteredMovies;
     }
 
-    public ArrayList<Movie> filterByTitle(String title) {
+    public static ArrayList<Movie> filterByTitle(ArrayList<Movie> movies, String title) {
         ArrayList<Movie> filteredMovies = new ArrayList<Movie>();
         // get all movies whose title has given text (not case sensitive)
-        for (Movie movie : this.getMovies()) {
+        for (Movie movie : movies) {
             if (movie.getTitle().toLowerCase().contains(title.toLowerCase())) {
                 filteredMovies.add(movie);
             }
@@ -141,7 +141,7 @@ public class MovieDatabase implements Serializable {
 
     // sort functions
 
-    public ArrayList<Movie> getMoviesSortedByReleaseYear(boolean increasingOrder) {
+    public static ArrayList<Movie> getMoviesSortedByReleaseYear(ArrayList<Movie> movies, boolean increasingOrder) {
         ArrayList<Movie> sortedMovies = new ArrayList<>(movies);
         // get sorted movies in either increasing or decrasing order by their release
         // year
@@ -150,8 +150,8 @@ public class MovieDatabase implements Serializable {
                 for (int j = i + 1; j < sortedMovies.size(); j++) {
                     if (sortedMovies.get(i).getReleaseYear() < sortedMovies.get(j).getReleaseYear()) {
                         Movie temp = sortedMovies.get(j);
-                        sortedMovies.set(j, sortedMovies.get(j + 1));
-                        sortedMovies.set(j + 1, temp);
+                        sortedMovies.set(j, sortedMovies.get(i));
+                        sortedMovies.set(i, temp);
                     }
                 }
             }
@@ -160,8 +160,8 @@ public class MovieDatabase implements Serializable {
                 for (int j = i + 1; j < sortedMovies.size(); j++) {
                     if (sortedMovies.get(i).getReleaseYear() > sortedMovies.get(j).getReleaseYear()) {
                         Movie temp = sortedMovies.get(j);
-                        sortedMovies.set(j, sortedMovies.get(j + 1));
-                        sortedMovies.set(j + 1, temp);
+                        sortedMovies.set(j, sortedMovies.get(i));
+                        sortedMovies.set(i, temp);
                     }
                 }
             }
@@ -170,17 +170,17 @@ public class MovieDatabase implements Serializable {
         return sortedMovies;
     }
 
-    public ArrayList<Movie> getMoviesSortedByRunningTime(boolean increasingOrder) {
+    public static ArrayList<Movie> getMoviesSortedByRunningTime(ArrayList<Movie> movies, boolean increasingOrder) {
         ArrayList<Movie> sortedMovies = new ArrayList<>(movies);
         // get sorted movies in either increasing or decrasing order by their running
         // time
-        if (increasingOrder) {
+        if (!increasingOrder) {
             for (int i = 0; i < sortedMovies.size() - 1; i++) {
                 for (int j = i + 1; j < sortedMovies.size(); j++) {
                     if (sortedMovies.get(i).getRunningTime() < sortedMovies.get(j).getRunningTime()) {
                         Movie temp = sortedMovies.get(j);
-                        sortedMovies.set(j, sortedMovies.get(j + 1));
-                        sortedMovies.set(j + 1, temp);
+                        sortedMovies.set(j, sortedMovies.get(i));
+                        sortedMovies.set(i, temp);
                     }
                 }
             }
@@ -189,8 +189,8 @@ public class MovieDatabase implements Serializable {
                 for (int j = i + 1; j < sortedMovies.size(); j++) {
                     if (sortedMovies.get(i).getRunningTime() > sortedMovies.get(j).getRunningTime()) {
                         Movie temp = sortedMovies.get(j);
-                        sortedMovies.set(j, sortedMovies.get(j + 1));
-                        sortedMovies.set(j + 1, temp);
+                        sortedMovies.set(j, sortedMovies.get(i));
+                        sortedMovies.set(i, temp);
                     }
                 }
             }
