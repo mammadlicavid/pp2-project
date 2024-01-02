@@ -24,7 +24,6 @@ public class Main {
         Movie movie20 = new Movie("Inglourious Basterds", "Quentin Tarantino", 2009, 153);
 
         MovieDatabase globalMovieDatabase = new MovieDatabase();
-        System.out.println(globalMovieDatabase.getMovies().size());
 
         SwingUI.generateUI(globalMovieDatabase);
     }
