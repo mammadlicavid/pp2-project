@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class MovieDatabase implements Serializable {
-    ArrayList<Movie> movies;
+    private ArrayList<Movie> movies;
 
     public MovieDatabase() {
         this.movies = new ArrayList<Movie>();
@@ -81,10 +81,10 @@ public class MovieDatabase implements Serializable {
         return filteredMovies;
     }
 
-    public ArrayList<Movie> filterByReleaseYear(int startYear, int endYear) {
+    public static ArrayList<Movie> filterByReleaseYear(ArrayList<Movie> movies, int startYear, int endYear) {
         ArrayList<Movie> filteredMovies = new ArrayList<Movie>();
         // get all movies whose release year is in between given years
-        for (Movie movie : this.getMovies()) {
+        for (Movie movie : movies) {
             if (movie.getReleaseYear() >= startYear && movie.getReleaseYear() <= endYear) {
                 filteredMovies.add(movie);
             }
@@ -93,16 +93,26 @@ public class MovieDatabase implements Serializable {
         return filteredMovies;
     }
 
-    public ArrayList<Movie> filterByRunningTimeInMinutes(int startYear, int endYear) {
+    public static ArrayList<Movie> filterByRunningTimeInMinutes(ArrayList<Movie> movies, int minTime, int maxTime) {
         ArrayList<Movie> filteredMovies = new ArrayList<Movie>();
         // get all movies whose running time is in between given years
-        for (Movie movie : this.getMovies()) {
-            if (movie.getRunningTime() >= startYear && movie.getRunningTime() <= endYear) {
+        for (Movie movie : movies) {
+            if (movie.getRunningTime() >= minTime && movie.getRunningTime() <= maxTime) {
                 filteredMovies.add(movie);
             }
         }
 
         return filteredMovies;
+    }
+
+    public static ArrayList<Movie> filterByRunningTimeAndReleaseYear(ArrayList<Movie> movies, int startYear,
+            int endYear, int minTime,
+            int maxTime) {
+        ArrayList<Movie> moviesFilteredByReleaseYear = filterByReleaseYear(movies, startYear, endYear);
+        ArrayList<Movie> moviesFilteredByRunningTimeAndReleaseYear = filterByRunningTimeInMinutes(
+                moviesFilteredByReleaseYear, minTime, maxTime);
+
+        return moviesFilteredByRunningTimeAndReleaseYear;
     }
 
     public ArrayList<Movie> filterByDirector(String name) {
