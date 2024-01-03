@@ -41,3 +41,7 @@ Further possible improvements:
 - Signing out
 - Sorting based on other factors (some of them are actually already implemented in other functions, but not been used/tested)
 - Adding/removing a movie to globaldatabase from UI as an admin. This can be achieved by adding users a type of either a normal user or an admin
+To conclude, we tried to do the daily commits. SwingUI did the biggest part of our job. Me and Leyla Novruzova worked on frame parts. Sorting and Filtering was done by Cavid. 
+To talk about SwingUI, it was committed by me on 27th December. SwingUI first draft was done at that day and it is a base UI for login and registration using previously defined functions.
+Then Cavid also committed for creating a new frame after login/registration.
+After that Leyla committed to create functionality to search movies and add and remove movies from the watchlist.
